@@ -109,7 +109,6 @@ completedList.length
 : 'Nenhuma concluída';
 
 }
-}
 
 function openModal(){modal.style.display='flex';}
 function closeModal(){modal.style.display='none';}
