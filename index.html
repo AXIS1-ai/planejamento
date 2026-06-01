@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planejamento AXIS 1</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h1>Planejamento Semanal</h1>
+    <button id="addClientBtn">+ Adicionar Cliente</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Seg</th>
+                <th>Ter</th>
+                <th>Qua</th>
+                <th>Qui</th>
+                <th>Sex</th>
+                <th>Sab</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="clientTable"></tbody>
+    </table>
+</div>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <h2>Cliente</h2>
+        <input type="text" id="clientName" placeholder="Nome do cliente">
+
+        <div class="days">
+            <label><input type="checkbox" value="seg"> Seg</label>
+            <label><input type="checkbox" value="ter"> Ter</label>
+            <label><input type="checkbox" value="qua"> Qua</label>
+            <label><input type="checkbox" value="qui"> Qui</label>
+            <label><input type="checkbox" value="sex"> Sex</label>
+            <label><input type="checkbox" value="sab"> Sab</label>
+        </div>
+
+        <button id="saveClient">Salvar</button>
+        <button id="cancelClient">Cancelar</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
