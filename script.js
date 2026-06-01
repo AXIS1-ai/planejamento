@@ -153,7 +153,6 @@ document.getElementById('resetWeekBtn').onclick=()=>{
 if(!confirm('Reiniciar semana?')) return;
 clients.forEach(c=>days.forEach(d=>{if(c.days[d]==='🟢') c.days[d]='🟧';}));
 saveStorage(); render();
-};
 
 document.getElementById('exportBtn').onclick=()=>{
 const blob=new Blob([JSON.stringify(clients,null,2)],{type:'application/json'});
