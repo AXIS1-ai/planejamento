@@ -38,7 +38,6 @@ table.appendChild(row);
 });
 highlightToday();
 updatePendingCount();
-updateDashboard();
 }
 
 function highlightToday(){
@@ -52,62 +51,9 @@ if(r.children[idx]) r.children[idx].classList.add('today-column');
 
 function toggleStatus(index,day){
 let current=clients[index].days[day];
-
 if(current==='⬛') return;
-
 clients[index].days[day]=current==='🟧'?'🟢':'🟧';
-
-saveStorage();
-render();
-}
-
-function updateDashboard(){
-
-const today=getTodayColumn();
-
-if(!today){
-return;
-}
-
-let todayList=[];
-let pendingList=[];
-let completedList=[];
-
-clients.forEach(client=>{
-
-const status=client.days[today];
-
-if(status!=="⬛"){
-
-todayList.push(client.name);
-
-if(status==="🟧"){
-pendingList.push(client.name);
-}
-
-if(status==="🟢"){
-completedList.push(client.name);
-}
-
-}
-
-});
-
-document.getElementById('todayClients').innerHTML=
-todayList.length
-? todayList.join('<br>')
-: 'Nenhum cliente hoje';
-
-document.getElementById('pendingClients').innerHTML=
-pendingList.length
-? pendingList.join('<br>')
-: 'Nenhum pendente';
-
-document.getElementById('completedClients').innerHTML=
-completedList.length
-? completedList.join('<br>')
-: 'Nenhuma concluída';
-
+saveStorage(); render();
 }
 
 function openModal(){modal.style.display='flex';}
@@ -153,6 +99,7 @@ document.getElementById('resetWeekBtn').onclick=()=>{
 if(!confirm('Reiniciar semana?')) return;
 clients.forEach(c=>days.forEach(d=>{if(c.days[d]==='🟢') c.days[d]='🟧';}));
 saveStorage(); render();
+};
 
 document.getElementById('exportBtn').onclick=()=>{
 const blob=new Blob([JSON.stringify(clients,null,2)],{type:'application/json'});
@@ -178,6 +125,5 @@ alert('Backup importado com sucesso!');
 };
 reader.readAsText(file);
 });
-
 
 render();
