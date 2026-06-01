@@ -52,9 +52,16 @@ if(r.children[idx]) r.children[idx].classList.add('today-column');
 
 function toggleStatus(index,day){
 let current=clients[index].days[day];
+
 if(current==='⬛') return;
+
 clients[index].days[day]=current==='🟧'?'🟢':'🟧';
-  function updateDashboard(){
+
+saveStorage();
+render();
+}
+
+function updateDashboard(){
 
 const today=getTodayColumn();
 
@@ -102,7 +109,6 @@ completedList.length
 : 'Nenhuma concluída';
 
 }
-saveStorage(); render();
 }
 
 function openModal(){modal.style.display='flex';}
