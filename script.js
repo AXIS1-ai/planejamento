@@ -178,5 +178,38 @@ alert('Backup importado com sucesso!');
 };
 reader.readAsText(file);
 });
+function updateWeekDates(){
 
+const today = new Date();
+
+const day = today.getDay();
+
+const monday = new Date(today);
+
+const diff = day === 0 ? -6 : 1 - day;
+
+monday.setDate(today.getDate() + diff);
+
+const ids = [
+'dSeg',
+'dTer',
+'dQua',
+'dQui',
+'dSex',
+'dSab'
+];
+
+ids.forEach((id,index)=>{
+
+const date = new Date(monday);
+
+date.setDate(monday.getDate()+index);
+
+document.getElementById(id).innerText =
+String(date.getDate()).padStart(2,'0');
+
+});
+
+}
+updateWeekDates();
 render();
