@@ -1,91 +1,30 @@
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
 
-body{
-background:#121212;
-color:white;
-padding:30px;
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+body{background:#121212;color:white;padding:30px;}
+.container{max-width:1200px;margin:auto;}
+h1{margin-bottom:20px;}
+.top-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;}
+button{cursor:pointer;}
+#addClientBtn,#exportBtn,#importBtn,#resetWeekBtn{
+border:none;padding:10px 16px;border-radius:8px;color:white;
 }
-
-.container{
-max-width:1200px;
-margin:auto;
+#addClientBtn{background:#ff6a00;}
+#exportBtn{background:#0f8b4c;}
+#importBtn{background:#1f6feb;}
+#resetWeekBtn{background:#666;}
+.pending-card{
+background:#1e1e1e;padding:12px 16px;border-left:4px solid #ff6a00;
+border-radius:8px;margin-bottom:20px;font-weight:bold;
 }
-
-h1{
-margin-bottom:20px;
-}
-
-#addClientBtn{
-background:#ff6a00;
-color:white;
-border:none;
-padding:10px 20px;
-border-radius:8px;
-margin-bottom:20px;
-cursor:pointer;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-}
-
-th,td{
-border:1px solid #333;
-padding:12px;
-text-align:center;
-}
-
-th{
-background:#1e1e1e;
-}
-
-.status{
-font-size:26px;
-cursor:pointer;
-}
-
-.action-btn{
-padding:6px 10px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-margin:0 2px;
-}
-
+table{width:100%;border-collapse:collapse;}
+th,td{border:1px solid #333;padding:12px;text-align:center;}
+th{background:#1e1e1e;}
+.today-column{background:rgba(255,106,0,.15)!important;}
+.status{font-size:26px;cursor:pointer;}
+.action-btn{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;margin:0 2px;}
 .edit{background:#2196f3;color:white;}
 .delete{background:#f44336;color:white;}
-
-.modal{
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.8);
-justify-content:center;
-align-items:center;
-}
-
-.modal-content{
-background:#222;
-padding:25px;
-border-radius:10px;
-width:400px;
-}
-
-.modal-content input{
-width:100%;
-padding:10px;
-margin-bottom:15px;
-}
-
-.days{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-margin-bottom:20px;
-}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);justify-content:center;align-items:center;}
+.modal-content{background:#222;padding:25px;border-radius:10px;width:400px;}
+.modal-content input{width:100%;padding:10px;margin-bottom:15px;}
+.days{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}

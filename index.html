@@ -9,7 +9,17 @@
 <body>
 <div class="container">
     <h1>Planejamento Semanal</h1>
-    <button id="addClientBtn">+ Adicionar Cliente</button>
+
+    <div class="top-bar">
+        <button id="addClientBtn">+ Adicionar Cliente</button>
+        <button id="exportBtn">📤 Exportar</button>
+        <button id="importBtn">📥 Importar</button>
+        <button id="resetWeekBtn">🔄 Reiniciar Semana</button>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" style="display:none;">
+
+    <div id="pendingCount" class="pending-card">🔥 Faltam 0 artes hoje</div>
 
     <table>
         <thead>
