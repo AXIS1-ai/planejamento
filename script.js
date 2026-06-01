@@ -38,6 +38,7 @@ table.appendChild(row);
 });
 highlightToday();
 updatePendingCount();
+updateDashboard();
 }
 
 function highlightToday(){
