@@ -53,6 +53,54 @@ function toggleStatus(index,day){
 let current=clients[index].days[day];
 if(current==='⬛') return;
 clients[index].days[day]=current==='🟧'?'🟢':'🟧';
+  function updateDashboard(){
+
+const today=getTodayColumn();
+
+if(!today){
+return;
+}
+
+let todayList=[];
+let pendingList=[];
+let completedList=[];
+
+clients.forEach(client=>{
+
+const status=client.days[today];
+
+if(status!=="⬛"){
+
+todayList.push(client.name);
+
+if(status==="🟧"){
+pendingList.push(client.name);
+}
+
+if(status==="🟢"){
+completedList.push(client.name);
+}
+
+}
+
+});
+
+document.getElementById('todayClients').innerHTML=
+todayList.length
+? todayList.join('<br>')
+: 'Nenhum cliente hoje';
+
+document.getElementById('pendingClients').innerHTML=
+pendingList.length
+? pendingList.join('<br>')
+: 'Nenhum pendente';
+
+document.getElementById('completedClients').innerHTML=
+completedList.length
+? completedList.join('<br>')
+: 'Nenhuma concluída';
+
+}
 saveStorage(); render();
 }
 
