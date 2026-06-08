@@ -30,6 +30,45 @@
         <span><strong class="status-dot sem-pedido"></strong>Sem pedido</span>
     </div>
 
+    <div class="metrics">
+        <div class="metric-card">
+            <span>Total de pedidos da semana</span>
+            <strong id="totalWeekOrders">00</strong>
+        </div>
+        <div class="metric-card">
+            <span>Pendentes</span>
+            <strong id="totalPendingOrders">00</strong>
+        </div>
+        <div class="metric-card">
+            <span>Realizados</span>
+            <strong id="totalCompletedOrders">00</strong>
+        </div>
+        <div class="metric-card">
+            <span>Sem pedido</span>
+            <strong id="totalNoOrders">00</strong>
+        </div>
+        <div class="metric-card total-created">
+            <span>Total criadas</span>
+            <strong id="totalCreatedMonth">00</strong>
+        </div>
+        <div class="metric-card today-summary">
+            <span>Hoje</span>
+            <strong id="todayOrderTotal">00 pedidos</strong>
+            <small id="todayOrderBreakdown">00 realizados | 00 pendentes</small>
+        </div>
+    </div>
+
+    <div class="week-progress-card">
+        <div class="progress-header">
+            <span>Semana</span>
+            <strong id="weekProgressPercent">0%</strong>
+        </div>
+        <div class="progress-track">
+            <div id="weekProgressBar" class="progress-fill"></div>
+        </div>
+        <small id="weekProgressText">0 de 0 entregas concluídas</small>
+    </div>
+
 <div class="dashboard">
 
     <div class="card">
@@ -71,6 +110,13 @@
     <div class="modal-content">
         <h2>Cliente</h2>
         <input type="text" id="clientName" placeholder="Nome do cliente">
+        <input type="number" id="monthlyValue" min="0" placeholder="Valor Mensal">
+
+        <label class="field-label" for="clientStatus">Status do Cliente</label>
+        <select id="clientStatus">
+            <option value="ativo">Ativo</option>
+            <option value="pausado">Pausado</option>
+        </select>
 
         <div class="days">
             <label><input type="checkbox" value="seg"> Seg</label>

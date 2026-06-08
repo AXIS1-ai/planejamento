@@ -1,6 +1,6 @@
 const table = document.getElementById('clientTable');
 const modal = document.getElementById('modal');
-let clients = JSON.parse(localStorage.getItem('clients')) || [];
+let clients = loadClients();
 let editingIndex = null;
 
 const days = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
@@ -25,6 +25,26 @@ function saveStorage() {
     localStorage.setItem('clients', JSON.stringify(clients));
 }
 
+function loadClients() {
+    try {
+        const storedClients = JSON.parse(localStorage.getItem('clients'));
+        return Array.isArray(storedClients) ? storedClients : [];
+    } catch (error) {
+        alert('Nao foi possivel carregar os dados salvos neste navegador.');
+        return [];
+    }
+}
+
+function parseBackup(content) {
+    const parsed = JSON.parse(content.replace(/^\uFEFF/, ''));
+
+    if (!Array.isArray(parsed)) {
+        throw new Error('O arquivo precisa ser um backup JSON exportado pelo planejamento.');
+    }
+
+    return parsed;
+}
+
 function normalizeStatus(status) {
     const oldStatusMap = {
         '⬛': 'none',
@@ -40,6 +60,8 @@ function normalizeClients() {
 
     clients = clients.map(client => {
         const normalizedDays = {};
+        const normalizedStatus = client.clientStatus === 'pausado' ? 'pausado' : 'ativo';
+        const normalizedMonthlyValue = Number(client.monthlyValue) || 0;
 
         days.forEach(day => {
             normalizedDays[day] = normalizeStatus(client.days && client.days[day]);
@@ -48,10 +70,66 @@ function normalizeClients() {
             }
         });
 
-        return { ...client, days: normalizedDays };
+        if (client.clientStatus !== normalizedStatus || client.monthlyValue !== normalizedMonthlyValue) {
+            changed = true;
+        }
+
+        return {
+            ...client,
+            clientStatus: normalizedStatus,
+            monthlyValue: normalizedMonthlyValue,
+            days: normalizedDays
+        };
     });
 
     if (changed) saveStorage();
+}
+
+function isClientActive(client) {
+    return client.clientStatus !== 'pausado';
+}
+
+function formatCount(value) {
+    return String(value).padStart(2, '0');
+}
+
+function getStatusCounts() {
+    const counts = {
+        weekOrders: 0,
+        pending: 0,
+        completed: 0,
+        noOrder: 0,
+        createdMonth: 0,
+        progressTotal: 0,
+        progressCompleted: 0,
+        todayOrders: 0,
+        todayCompleted: 0,
+        todayPending: 0
+    };
+    const today = getTodayColumn();
+
+    clients.filter(isClientActive).forEach(client => {
+        counts.createdMonth += Number(client.monthlyValue) || 0;
+
+        days.forEach(day => {
+            const status = client.days[day];
+
+            if (status === 'none') counts.noOrder++;
+            if (status !== 'none') counts.weekOrders++;
+            if (status === 'pedidoDia' || status === 'fazendo') counts.pending++;
+            if (status === 'realizado') counts.completed++;
+
+            if (status === 'pedidoDia' || status === 'realizado') counts.progressTotal++;
+            if (status === 'realizado') counts.progressCompleted++;
+        });
+
+        const todayStatus = client.days[today];
+        if (todayStatus !== 'none') counts.todayOrders++;
+        if (todayStatus === 'realizado') counts.todayCompleted++;
+        if (todayStatus === 'pedidoDia' || todayStatus === 'fazendo') counts.todayPending++;
+    });
+
+    return counts;
 }
 
 function escapeHTML(value) {
@@ -113,7 +191,7 @@ function updatePendingCount() {
     const today = getTodayColumn();
     let pending = 0;
 
-    clients.forEach(client => {
+    clients.filter(isClientActive).forEach(client => {
         const status = client.days[today];
         if (status === 'pedidoDia' || status === 'fazendo') pending++;
     });
@@ -121,14 +199,50 @@ function updatePendingCount() {
     document.getElementById('pendingCount').innerText = `Faltam ${pending} pedidos hoje`;
 }
 
+function updateTopIndicators() {
+    const counts = getStatusCounts();
+    const progressPercent = counts.progressTotal
+        ? Math.round((counts.progressCompleted / counts.progressTotal) * 100)
+        : 0;
+
+    document.getElementById('totalWeekOrders').innerText = formatCount(counts.weekOrders);
+    document.getElementById('totalPendingOrders').innerText = formatCount(counts.pending);
+    document.getElementById('totalCompletedOrders').innerText = formatCount(counts.completed);
+    document.getElementById('totalNoOrders').innerText = formatCount(counts.noOrder);
+    document.getElementById('totalCreatedMonth').innerText = formatCount(counts.createdMonth);
+
+    document.getElementById('todayOrderTotal').innerText = `${formatCount(counts.todayOrders)} pedidos`;
+    document.getElementById('todayOrderBreakdown').innerText =
+        `${formatCount(counts.todayCompleted)} realizados | ${formatCount(counts.todayPending)} pendentes`;
+
+    document.getElementById('weekProgressPercent').innerText = `${progressPercent}%`;
+    document.getElementById('weekProgressBar').style.width = `${progressPercent}%`;
+    document.getElementById('weekProgressText').innerText =
+        `${counts.progressCompleted} de ${counts.progressTotal} entregas concluídas`;
+}
+
 function render() {
     normalizeClients();
     renderWeekCalendar();
     table.innerHTML = '';
 
-    clients.forEach((client, index) => {
+    const orderedClients = clients
+        .map((client, index) => ({ client, index }))
+        .sort((a, b) => {
+            if (isClientActive(a.client) === isClientActive(b.client)) return a.index - b.index;
+            return isClientActive(a.client) ? -1 : 1;
+        });
+
+    orderedClients.forEach(({ client, index }) => {
         const row = document.createElement('tr');
-        let html = `<td>${escapeHTML(client.name)}</td>`;
+        if (!isClientActive(client)) row.classList.add('paused-client');
+
+        let html = `
+            <td class="client-cell">
+                <strong>${escapeHTML(client.name)}</strong>
+                <span>${isClientActive(client) ? 'Ativo' : 'Pausado'} | ${formatCount(Number(client.monthlyValue) || 0)} criadas</span>
+            </td>
+        `;
 
         days.forEach(day => {
             const status = statusConfig[client.days[day]] || statusConfig.none;
@@ -143,6 +257,7 @@ function render() {
 
         html += `<td>
             <button class="action-btn edit" onclick="editClient(${index})" title="Editar">Editar</button>
+            <button class="action-btn pause" onclick="toggleClientStatus(${index})" title="Alterar status">${isClientActive(client) ? 'Pausar' : 'Ativar'}</button>
             <button class="action-btn delete" onclick="deleteClient(${index})" title="Excluir">Excluir</button>
         </td>`;
 
@@ -152,6 +267,7 @@ function render() {
 
     highlightToday();
     updatePendingCount();
+    updateTopIndicators();
     updateDashboard();
 }
 
@@ -194,7 +310,7 @@ function updateDashboard() {
     const doingList = [];
     const completedList = [];
 
-    clients.forEach(client => {
+    clients.filter(isClientActive).forEach(client => {
         const status = client.days[today];
 
         if (status !== 'none') todayList.push(formatClientStatus(client, today));
@@ -223,6 +339,8 @@ function closeModal() {
 document.getElementById('addClientBtn').onclick = () => {
     editingIndex = null;
     document.getElementById('clientName').value = '';
+    document.getElementById('monthlyValue').value = '';
+    document.getElementById('clientStatus').value = 'ativo';
     document.querySelectorAll('.days input').forEach(checkbox => {
         checkbox.checked = false;
     });
@@ -233,6 +351,8 @@ document.getElementById('cancelClient').onclick = closeModal;
 
 document.getElementById('saveClient').onclick = () => {
     const name = document.getElementById('clientName').value.trim();
+    const monthlyValue = Number(document.getElementById('monthlyValue').value) || 0;
+    const clientStatus = document.getElementById('clientStatus').value;
     if (!name) return;
 
     const selectedDays = {};
@@ -243,9 +363,9 @@ document.getElementById('saveClient').onclick = () => {
     });
 
     if (editingIndex !== null) {
-        clients[editingIndex] = { name, days: selectedDays };
+        clients[editingIndex] = { name, monthlyValue, clientStatus, days: selectedDays };
     } else {
-        clients.push({ name, days: selectedDays });
+        clients.push({ name, monthlyValue, clientStatus, days: selectedDays });
     }
 
     saveStorage();
@@ -264,12 +384,20 @@ function editClient(index) {
     editingIndex = index;
     const client = clients[index];
     document.getElementById('clientName').value = client.name;
+    document.getElementById('monthlyValue').value = client.monthlyValue || '';
+    document.getElementById('clientStatus').value = client.clientStatus || 'ativo';
 
     days.forEach(day => {
         document.querySelector(`input[value="${day}"]`).checked = client.days[day] !== 'none';
     });
 
     openModal();
+}
+
+function toggleClientStatus(index) {
+    clients[index].clientStatus = isClientActive(clients[index]) ? 'pausado' : 'ativo';
+    saveStorage();
+    render();
 }
 
 document.getElementById('resetWeekBtn').onclick = () => {
@@ -294,7 +422,9 @@ document.getElementById('exportBtn').onclick = () => {
 };
 
 document.getElementById('importBtn').onclick = () => {
-    document.getElementById('importFile').click();
+    const importFile = document.getElementById('importFile');
+    importFile.value = '';
+    importFile.click();
 };
 
 document.getElementById('importFile').addEventListener('change', event => {
@@ -303,11 +433,18 @@ document.getElementById('importFile').addEventListener('change', event => {
 
     const reader = new FileReader();
     reader.onload = () => {
-        clients = JSON.parse(reader.result);
-        normalizeClients();
-        saveStorage();
-        render();
-        alert('Backup importado com sucesso!');
+        try {
+            clients = parseBackup(reader.result);
+            normalizeClients();
+            saveStorage();
+            render();
+            alert(`Backup importado com sucesso! ${clients.length} clientes carregados.`);
+        } catch (error) {
+            alert(`Nao foi possivel importar o backup. ${error.message}`);
+        }
+    };
+    reader.onerror = () => {
+        alert('Nao foi possivel ler o arquivo selecionado.');
     };
     reader.readAsText(file);
 });
