@@ -19,23 +19,32 @@
 
     <input type="file" id="importFile" accept=".json" style="display:none;">
 
-    <div id="pendingCount" class="pending-card">🔥 Faltam 0 artes hoje</div>
+    <div id="pendingCount" class="pending-card">Faltam 0 pedidos hoje</div>
+
+    <div id="weekCalendar" class="week-calendar"></div>
+
+    <div class="legend">
+        <span><strong class="status-dot pedido-dia"></strong>Pedido do dia</span>
+        <span><strong class="status-dot pedido-fazendo"></strong>Pedido sendo feito</span>
+        <span><strong class="status-dot pedido-realizado"></strong>Pedido realizado</span>
+        <span><strong class="status-dot sem-pedido"></strong>Sem pedido</span>
+    </div>
 
 <div class="dashboard">
 
     <div class="card">
-        <h3>🔥 Hoje</h3>
+        <h3>Hoje</h3>
         <div id="todayClients">Nenhum cliente hoje</div>
     </div>
 
     <div class="card">
-        <h3>📋 Pendentes</h3>
-        <div id="pendingClients">Nenhum pendente</div>
+        <h3>Em andamento</h3>
+        <div id="pendingClients">Nenhum pedido sendo feito</div>
     </div>
 
     <div class="card">
-        <h3>🟢 Concluídas</h3>
-        <div id="completedClients">Nenhuma concluída</div>
+        <h3>Realizados</h3>
+        <div id="completedClients">Nenhum pedido realizado</div>
     </div>
 
 </div>
@@ -44,12 +53,13 @@
         <thead>
             <tr>
                 <th>Cliente</th>
-                <th>Seg</th>
-                <th>Ter</th>
-                <th>Qua</th>
-                <th>Qui</th>
-                <th>Sex</th>
-                <th>Sab</th>
+                <th data-day-header="seg">Seg</th>
+                <th data-day-header="ter">Ter</th>
+                <th data-day-header="qua">Qua</th>
+                <th data-day-header="qui">Qui</th>
+                <th data-day-header="sex">Sex</th>
+                <th data-day-header="sab">Sab</th>
+                <th data-day-header="dom">Dom</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -69,6 +79,7 @@
             <label><input type="checkbox" value="qui"> Qui</label>
             <label><input type="checkbox" value="sex"> Sex</label>
             <label><input type="checkbox" value="sab"> Sab</label>
+            <label><input type="checkbox" value="dom"> Dom</label>
         </div>
 
         <button id="saveClient">Salvar</button>
