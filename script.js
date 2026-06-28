@@ -2,6 +2,7 @@ const table = document.getElementById('clientTable');
 const modal = document.getElementById('modal');
 let clients = loadClients();
 let editingIndex = null;
+const weekStartStorageKey = 'planningWeekStart';
 
 const days = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
 const dayLabels = {
@@ -93,6 +94,70 @@ function formatCount(value) {
     return String(value).padStart(2, '0');
 }
 
+function getMondayForDate(date) {
+    const monday = new Date(date);
+    const day = monday.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+
+    monday.setDate(date.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+
+    return monday;
+}
+
+function formatISODate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
+function parseISODate(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
+
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    date.setHours(0, 0, 0, 0);
+
+    if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+    ) {
+        return null;
+    }
+
+    return date;
+}
+
+function savePlanningWeekStart(date) {
+    localStorage.setItem(weekStartStorageKey, formatISODate(date));
+}
+
+function getPlanningWeekStart() {
+    const currentWeekStart = getMondayForDate(new Date());
+    const storedWeekStart = parseISODate(localStorage.getItem(weekStartStorageKey));
+
+    if (storedWeekStart && storedWeekStart >= currentWeekStart) {
+        return storedWeekStart;
+    }
+
+    savePlanningWeekStart(currentWeekStart);
+    return currentWeekStart;
+}
+
+function movePlanningWeekAfterReset() {
+    const today = new Date();
+    const weekStart = getMondayForDate(today);
+
+    if (today.getDay() === 0) {
+        weekStart.setDate(weekStart.getDate() + 7);
+    }
+
+    savePlanningWeekStart(weekStart);
+}
+
 function getStatusCounts() {
     const counts = {
         weekOrders: 0,
@@ -123,8 +188,8 @@ function getStatusCounts() {
             if (status === 'realizado') counts.progressCompleted++;
         });
 
-        const todayStatus = client.days[today];
-        if (todayStatus !== 'none') counts.todayOrders++;
+        const todayStatus = today ? client.days[today] : 'none';
+        if (today && todayStatus !== 'none') counts.todayOrders++;
         if (todayStatus === 'realizado') counts.todayCompleted++;
         if (todayStatus === 'pedidoDia' || todayStatus === 'fazendo') counts.todayPending++;
     });
@@ -142,13 +207,7 @@ function escapeHTML(value) {
 }
 
 function getWeekDates() {
-    const today = new Date();
-    const monday = new Date(today);
-    const day = today.getDay();
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-
-    monday.setDate(today.getDate() + diffToMonday);
-    monday.setHours(0, 0, 0, 0);
+    const monday = getPlanningWeekStart();
 
     return days.map((dayKey, index) => {
         const date = new Date(monday);
@@ -165,8 +224,17 @@ function formatDate(date) {
 }
 
 function getTodayColumn() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const weekStart = getPlanningWeekStart();
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    if (today < weekStart || today > weekEnd) return null;
+
     const map = { 1: 'seg', 2: 'ter', 3: 'qua', 4: 'qui', 5: 'sex', 6: 'sab', 0: 'dom' };
-    return map[new Date().getDay()];
+    return map[today.getDay()];
 }
 
 function renderWeekCalendar() {
@@ -190,6 +258,11 @@ function renderWeekCalendar() {
 function updatePendingCount() {
     const today = getTodayColumn();
     let pending = 0;
+
+    if (!today) {
+        document.getElementById('pendingCount').innerText = 'Faltam 0 pedidos hoje';
+        return;
+    }
 
     clients.filter(isClientActive).forEach(client => {
         const status = client.days[today];
@@ -310,6 +383,13 @@ function updateDashboard() {
     const doingList = [];
     const completedList = [];
 
+    if (!today) {
+        document.getElementById('todayClients').innerHTML = 'Nenhum cliente hoje';
+        document.getElementById('pendingClients').innerHTML = 'Nenhum pedido sendo feito';
+        document.getElementById('completedClients').innerHTML = 'Nenhum pedido realizado';
+        return;
+    }
+
     clients.filter(isClientActive).forEach(client => {
         const status = client.days[today];
 
@@ -409,6 +489,7 @@ document.getElementById('resetWeekBtn').onclick = () => {
         });
     });
 
+    movePlanningWeekAfterReset();
     saveStorage();
     render();
 };
